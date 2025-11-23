@@ -237,6 +237,34 @@
       </div>
     </div>
 
+
+    <div style="margin-top:12px" class="card" id="investmentsCard">
+      <div class="section-title">Investments & Yearly Summary</div>
+      <div class="small">Record SIPs, FDs, PPF and see yearly cumulative totals.</div>
+      <div style="margin-top:8px" class="grid">
+        <div class="card">
+          <label>Monthly SIP (₹)</label>
+          <input id="invSip" type="number" value="0">
+          <label style="margin-top:8px">Monthly Gold (₹)</label>
+          <input id="invGold" type="number" value="0">
+          <label style="margin-top:8px">Additional Investments (₹)</label>
+          <input id="invOther" type="number" value="0">
+        </div>
+        <div class="card">
+          <div class="section-title small">Yearly Cumulative Totals</div>
+          <div style="margin-top:8px">
+            <div class="totals">
+              <div class="pill">Year: <span id="yearLabel"></span></div>
+              <div class="pill">Karthik Year Total: <span id="yearA">0</span></div>
+              <div class="pill">Kalyani Year Total: <span id="yearB">0</span></div>
+              <div class="pill">Shared Year Total: <span id="yearS">0</span></div>
+            </div>
+            <div style="margin-top:10px" class="small muted">Investments this month total: <span id="invMonthTotal">0</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <footer>
       Tip: Use the Export/Import to share data with your partner. Data is stored locally on device only.
     </footer>
@@ -285,19 +313,19 @@
         const weekSum = Object.values(week).reduce((s,v)=>s+v,0) - (week.weektotal||0);
         // We will compute weektotal as sum of categories
         const calc = (week.groceries||0)+(week.food||0)+(week.trips||0)+(week.shopping||0)+(week.misc||0);
-        document.querySelectorAll([data-owner="a"][data-week="${w}"][data-cat="weektotal"])[0].value = calc;
+        document.querySelectorAll(`[data-owner="a"][data-week="${w}"][data-cat="weektotal"]`)[0].value = calc;
         aTotal += calc;
       });
       Object.keys(data.b||{}).forEach(w=>{
         const week = data.b[w];
         const calc = (week.groceries||0)+(week.food||0)+(week.trips||0)+(week.shopping||0)+(week.misc||0);
-        document.querySelectorAll([data-owner="b"][data-week="${w}"][data-cat="weektotal"])[0].value = calc;
+        document.querySelectorAll(`[data-owner="b"][data-week="${w}"][data-cat="weektotal"]`)[0].value = calc;
         bTotal += calc;
       });
       Object.keys(data.s||{}).forEach(w=>{
         const week = data.s[w];
         const calc = (week.groceries||0)+(week.eating||0)+(week.trips||0)+(week.utilities||0)+(week.misc||0);
-        document.querySelectorAll([data-owner="s"][data-week="${w}"][data-cat="weektotal"])[0].value = calc;
+        document.querySelectorAll(`[data-owner="s"][data-week="${w}"][data-cat="weektotal"]`)[0].value = calc;
         sTotal += calc;
       });
 
@@ -390,7 +418,7 @@
               Object.keys(obj.data).forEach(owner=>{
                 Object.keys(obj.data[owner]).forEach(week=>{
                   Object.keys(obj.data[owner][week]).forEach(cat=>{
-                    const el = document.querySelector([data-owner="${owner}"][data-week="${week}"][data-cat="${cat}"]);
+                    const el = document.querySelector(`[data-owner="${owner}"][data-week="${week}"][data-cat="${cat}"]`);
                     if(el) el.value = Number(obj.data[owner][week][cat])||0;
                   });
                 });
@@ -419,14 +447,14 @@
       const sTotal = Number(sTotalEl.textContent)||0;
       if(splitMethod.value === 'half'){
         const each = Math.round(sTotal/2);
-        splitResult.textContent = Each pays ₹${each} (50-50);
+        splitResult.textContent = `Each pays ₹${each} (50-50)`;
       } else {
         const a = Number(incomeA.value)||0;
         const b = Number(incomeB.value)||0;
         const totalInc = a+b || 1;
         const shareA = Math.round(sTotal * (a/totalInc));
         const shareB = sTotal - shareA;
-        splitResult.textContent = A pays ₹${shareA} · B pays ₹${shareB} (income split);
+        splitResult.textContent = `A pays ₹${shareA} · B pays ₹${shareB} (income split)`;
       }
     });
 
@@ -441,7 +469,7 @@
             Object.keys(obj.data).forEach(owner=>{
               Object.keys(obj.data[owner]).forEach(week=>{
                 Object.keys(obj.data[owner][week]).forEach(cat=>{
-                  const el = document.querySelector([data-owner="${owner}"][data-week="${week}"][data-cat="${cat}"]);
+                  const el = document.querySelector(`[data-owner="${owner}"][data-week="${week}"][data-cat="${cat}"]`);
                   if(el) el.value = Number(obj.data[owner][week][cat])||0;
                 });
               });
@@ -451,6 +479,124 @@
         }catch(e){}
       }
       writeTotals();
+    })();
+
+
+    // --- INVESTMENTS & YEARLY AGGREGATION ---
+    const invSip = document.getElementById('invSip');
+    const invGold = document.getElementById('invGold');
+    const invOther = document.getElementById('invOther');
+    const yearLabel = document.getElementById('yearLabel');
+    const yearA = document.getElementById('yearA');
+    const yearB = document.getElementById('yearB');
+    const yearS = document.getElementById('yearS');
+    const invMonthTotal = document.getElementById('invMonthTotal');
+
+    function monthToYearKey() {
+      // derive year from monthName or current date
+      const m = monthName.value.trim() || (new Date()).toLocaleString('default',{month:'long',year:'numeric'});
+      // try to extract year like 'November 2025'
+      const parts = m.split(' ');
+      const year = parts.length>1 ? parts[parts.length-1] : (new Date()).getFullYear();
+      return String(year);
+    }
+
+    function updateInvestmentsDisplay() {
+      const sip = Number(invSip.value)||0;
+      const gold = Number(invGold.value)||0;
+      const other = Number(invOther.value)||0;
+      invMonthTotal.textContent = sip + gold + other;
+    }
+
+    // Call when any inv input changes
+    [invSip, invGold, invOther].forEach(el=> el.addEventListener('input', updateInvestmentsDisplay));
+
+    // When saving month, also update yearly aggregation
+    const originalSave = saveBtn.onclick;
+    saveBtn.addEventListener('click', ()=>{
+      // Save month as before (already handled by saveBtn listener)
+      // Additionally update year totals
+      const key = keyForMonth();
+      const payload = {
+        month: monthName.value.trim() || null,
+        data: readAll(),
+        savedAt: new Date().toISOString(),
+        investments: { sip: Number(invSip.value)||0, gold: Number(invGold.value)||0, other: Number(invOther.value)||0 }
+      };
+      localStorage.setItem(key, JSON.stringify(payload));
+
+      // Update year aggregation
+      const year = monthToYearKey();
+      const yKey = 'pt.year.' + year;
+      const yearObj = JSON.parse(localStorage.getItem(yKey) || '{}');
+      // compute month totals
+      const data = readAll();
+      let aTotal=0,bTotal=0,sTotal=0;
+      Object.keys(data.a||{}).forEach(w=>{
+        const week = data.a[w];
+        const calc = (week.groceries||0)+(week.food||0)+(week.trips||0)+(week.shopping||0)+(week.misc||0);
+        aTotal += calc;
+      });
+      Object.keys(data.b||{}).forEach(w=>{
+        const week = data.b[w];
+        const calc = (week.groceries||0)+(week.food||0)+(week.trips||0)+(week.shopping||0)+(week.misc||0);
+        bTotal += calc;
+      });
+      Object.keys(data.s||{}).forEach(w=>{
+        const week = data.s[w];
+        const calc = (week.groceries||0)+(week.eating||0)+(week.trips||0)+(week.utilities||0)+(week.misc||0);
+        sTotal += calc;
+      });
+
+      // store month totals under yearObj by monthName
+      const monthKey = monthName.value.trim() || (new Date()).toLocaleString('default',{month:'long',year:'numeric'});
+      yearObj[monthKey] = { a: aTotal, b: bTotal, s: sTotal, investments: payload.investments };
+      // recompute year sums
+      let ya=0,yb=0,ys=0;
+      Object.keys(yearObj).forEach(mth=>{
+        ya += (yearObj[mth].a||0);
+        yb += (yearObj[mth].b||0);
+        ys += (yearObj[mth].s||0);
+      });
+      yearObj.__totals = { a: ya, b: yb, s: ys };
+      localStorage.setItem(yKey, JSON.stringify(yearObj));
+      // update UI
+      yearLabel.textContent = year;
+      yearA.textContent = ya;
+      yearB.textContent = yb;
+      yearS.textContent = ys;
+
+      alert('Saved locally and yearly totals updated');
+    });
+
+    // On load, populate investments and yearly summary if available
+    (function loadYearData(){
+      const m = monthName.value.trim() || (new Date()).toLocaleString('default',{month:'long',year:'numeric'});
+      const key = 'pt.' + m;
+      const saved = localStorage.getItem(key);
+      if(saved){
+        try{
+          const obj = JSON.parse(saved);
+          if(obj.investments){
+            invSip.value = obj.investments.sip || 0;
+            invGold.value = obj.investments.gold || 0;
+            invOther.value = obj.investments.other || 0;
+            updateInvestmentsDisplay();
+          }
+        }catch(e){}
+      }
+      // load year totals
+      const year = monthToYearKey();
+      const yKey = 'pt.year.' + year;
+      const y = JSON.parse(localStorage.getItem(yKey) || '{}');
+      if(y && y.__totals){
+        yearLabel.textContent = year;
+        yearA.textContent = y.__totals.a || 0;
+        yearB.textContent = y.__totals.b || 0;
+        yearS.textContent = y.__totals.s || 0;
+      } else {
+        yearLabel.textContent = year;
+      }
     })();
 
   </script>

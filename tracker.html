@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Pastel Partner Expense Tracker</title>
+  <style>
+    :root{
+      --bg:#f7fbff;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --accent1:#ffd6e0;
+      --accent2:#e6f7ff;
+      --accent3:#f6f6ff;
+      --accent4:#fff3cc;
+      --glass: rgba(255,255,255,0.7);
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;padding:18px;background:linear-gradient(180deg,var(--accent2) 0%, var(--bg) 60%);color:#0f172a}
+    .wrap{max-width:960px;margin:0 auto}
+    header{display:flex;align-items:center;gap:12px}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:4px 0 18px;color:var(--muted)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 6px 18px rgba(15,23,42,0.06)}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+    input[type="number"], select, input[type="text"]{width:100%;padding:8px;border-radius:8px;border:1px solid #e6edf3;background:transparent}
+    .section-title{font-weight:600;margin-bottom:8px}
+    .week-row{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;align-items:end}
+    .small{font-size:12px;color:var(--muted)}
+    .btn{display:inline-block;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:#111827;color:white}
+    .row{display:flex;gap:8px;align-items:center}
+    .totals{display:flex;gap:10px;flex-wrap:wrap}
+    .pill{padding:8px;border-radius:999px;background:var(--glass);font-weight:600}
+    canvas{max-width:100%;height:220px}
+    .muted{color:var(--muted)}
+    footer{margin-top:18px;text-align:center;color:var(--muted);font-size:13px}
+    .controls{display:flex;gap:8px;flex-wrap:wrap}
+    .pastel-legend{display:flex;gap:8px;align-items:center}
+    .box{width:12px;height:12px;border-radius:3px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--accent1),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:700">PT</div>
+      <div>
+        <h1>Pastel Partner Expense Tracker</h1>
+        <p class="lead">10-minute weekly method • You + Partner + Shared • Offline • Pastel theme</p>
+      </div>
+    </header>
+
+    <div style="margin-top:12px" class="card">
+      <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+        <div>
+          <div class="small">Month</div>
+          <input id="monthName" type="text" placeholder="e.g., November 2025">
+        </div>
+        <div class="controls">
+          <button class="btn" id="saveBtn">Save</button>
+          <button class="btn" id="exportBtn">Export JSON</button>
+          <button class="btn" id="importBtn">Import JSON</button>
+          <button class="btn" id="clearBtn">Reset Month</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px" class="grid">
+      <div class="card">
+        <div class="section-title">Karthik — Weekly Totals</div>
+        <div class="small">Enter category totals per week (only totals, not items)</div>
+        <div style="margin-top:8px">
+          <div class="week-row" id="aWeek1">
+            <div><label>Groceries</label><input data-owner="a" data-week="1" data-cat="groceries" type="number" min="0" value="0"></div>
+            <div><label>Food</label><input data-owner="a" data-week="1" data-cat="food" type="number" min="0" value="0"></div>
+            <div><label>Trips</label><input data-owner="a" data-week="1" data-cat="trips" type="number" min="0" value="0"></div>
+            <div><label>Shopping</label><input data-owner="a" data-week="1" data-cat="shopping" type="number" min="0" value="0"></div>
+            <div><label>Misc</label><input data-owner="a" data-week="1" data-cat="misc" type="number" min="0" value="0"></div>
+            <div><label>Week Total</label><input data-owner="a" data-week="1" data-cat="weektotal" readonly type="number" value="0"></div>
+          </div>
+
+          <div class="week-row" style="margin-top:8px" id="aWeek2">
+            <div><label>Groceries</label><input data-owner="a" data-week="2" data-cat="groceries" type="number" min="0" value="0"></div>
+            <div><label>Food</label><input data-owner="a" data-week="2" data-cat="food" type="number" min="0" value="0"></div>
+            <div><label>Trips</label><input data-owner="a" data-week="2" data-cat="trips" type="number" min="0" value="0"></div>
+            <div><label>Shopping</label><input data-owner="a" data-week="2" data-cat="shopping" type="number" min="0" value="0"></div>
+            <div><label>Misc</label><input data-owner="a" data-week="2" data-cat="misc" type="number" min="0" value="0"></div>
+            <div><label>Week Total</label><input data-owner="a" data-week="2" data-cat="weektotal" readonly type="number" value="0"></div>
+          </div>
+
+          <div class="week-row" style="margin-top:8px" id="aWeek3">
+            <div><label>Groceries</label><input data-owner="a" data-week="3" data-cat="groceries" type="number" min="0" value="0"></div>
+            <div><label>Food</label><input data-owner="a" data-week="3" data-cat="food" type="number" min="0" value="0"></div>
+            <div><label>Trips</label><input data-owner="a" data-week="3" data-cat="trips" type="number" min="0" value="0"></div>
+            <div><label>Shopping</label><input data-owner="a" data-week="3" data-cat="shopping" type="number" min="0" value="0"></div>
+            <div><label>Misc</label><input data-owner="a" data-week="3" data-cat="misc" type="number" min="0" value="0"></div>
+            <div><label>Week Total</label><input data-owner="a" data-week="3" data-cat="weektotal" readonly type="number" value="0"></div>
+          </div>
+
+          <div class="week-row" style="margin-top:8px" id="aWeek4">
+            <div><label>Groceries</label><input data-owner="a" data-week="4" data-cat="groceries" type="number" min="0" value="0"></div>
+            <div><label>Food</label><input data-owner="a" data-week="4" data-cat="food" type="number" min="0" value="0"></div>
+            <div><label>Trips</label><input data-owner="a" data-week="4" data-cat="trips" type="number" min="0" value="0"></div>
+            <div><label>Shopping</label><input data-owner="a" data-week="4" data-cat="shopping" type="number" min="0" value="0"></div>
+            <div><label>Misc</label><input data-owner="a" data-week="4" data-cat="misc" type="number" min="0" value="0"></div>
+            <div><label>Week Total</label><input data-owner="a" data-week="4" data-cat="weektotal" readonly type="number" value="0"></div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Kalyani — Weekly Totals</div>
+        <div class="small">Same format for Kalyani</div>
+        <div style="margin-top:8px">
+          <div class="week-row" id="bWeek1">
+            <div><label>Groceries</label><input data-owner="b" data-week="1" data-cat="groceries" type="number" min="0" value="0"></div>
+            <div><label>Food</label><input data-owner="b" data-week="1" data-cat="food" type="number" min="0" value="0"></div>
+            <div><label>Trips</label><input data-owner="b" data-week="1" data-cat="trips" type="number" min="0" value="0"></div>
+            <div><label>Shopping</label><input data-owner="b" data-week="1" data-cat="shopping" type="number" min="0" value="0"></div>
+            <div><label>Misc</label><input data-owner="b" data-week="1" data-cat="misc" type="number" min="0" value="0"></div>
+            <div><label>Week Total</label><input data-owner="b" data-week="1" data-cat="weektotal" readonly type="number" value="0"></div>
+          </div>
+
+          <div class="week-row" style="margin-top:8px" id="bWeek2">
+            <div><label>Groceries</label><input data-owner="b" data-week="2" data-cat="groceries" type="number" min="0" value="0"></div>
+            <div><label>Food</label><input data-owner="b" data-week="2" data-cat="food" type="number" min="0" value="0"></div>
+            <div><label>Trips</label><input data-owner="b" data-week="2" data-cat="trips" type="number" min="0" value="0"></div>
+            <div><label>Shopping</label><input data-owner="b" data-week="2" data-cat="shopping" type="number" min="0" value="0"></div>
+            <div><label>Misc</label><input data-owner="b" data-week="2" data-cat="misc" type="number" min="0" value="0"></div>
+            <div><label>Week Total</label><input data-owner="b" data-week="2" data-cat="weektotal" readonly type="number" value="0"></div>
+          </div>
+
+          <div class="week-row" style="margin-top:8px" id="bWeek3">
+            <div><label>Groceries</label><input data-owner="b" data-week="3" data-cat="groceries" type="number" min="0" value="0"></div>
+            <div><label>Food</label><input data-owner="b" data-week="3" data-cat="food" type="number" min="0" value="0"></div>
+            <div><label>Trips</label><input data-owner="b" data-week="3" data-cat="trips" type="number" min="0" value="0"></div>
+            <div><label>Shopping</label><input data-owner="b" data-week="3" data-cat="shopping" type="number" min="0" value="0"></div>
+            <div><label>Misc</label><input data-owner="b" data-week="3" data-cat="misc" type="number" min="0" value="0"></div>
+            <div><label>Week Total</label><input data-owner="b" data-week="3" data-cat="weektotal" readonly type="number" value="0"></div>
+          </div>
+
+          <div class="week-row" style="margin-top:8px" id="bWeek4">
+            <div><label>Groceries</label><input data-owner="b" data-week="4" data-cat="groceries" type="number" min="0" value="0"></div>
+            <div><label>Food</label><input data-owner="b" data-week="4" data-cat="food" type="number" min="0" value="0"></div>
+            <div><label>Trips</label><input data-owner="b" data-week="4" data-cat="trips" type="number" min="0" value="0"></div>
+            <div><label>Shopping</label><input data-owner="b" data-week="4" data-cat="shopping" type="number" min="0" value="0"></div>
+            <div><label>Misc</label><input data-owner="b" data-week="4" data-cat="misc" type="number" min="0" value="0"></div>
+            <div><label>Week Total</label><input data-owner="b" data-week="4" data-cat="weektotal" readonly type="number" value="0"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px" class="card">
+      <div class="section-title">Shared — Weekly Totals</div>
+      <div class="small">Enter shared category totals each week (groceries, eating out, trips, utilities)</div>
+      <div style="margin-top:8px">
+        <div class="week-row" id="sWeek1">
+          <div><label>Groceries</label><input data-owner="s" data-week="1" data-cat="groceries" type="number" min="0" value="0"></div>
+          <div><label>Eating Out</label><input data-owner="s" data-week="1" data-cat="eating" type="number" min="0" value="0"></div>
+          <div><label>Trips</label><input data-owner="s" data-week="1" data-cat="trips" type="number" min="0" value="0"></div>
+          <div><label>Utilities</label><input data-owner="s" data-week="1" data-cat="utilities" type="number" min="0" value="0"></div>
+          <div><label>Misc</label><input data-owner="s" data-week="1" data-cat="misc" type="number" min="0" value="0"></div>
+          <div><label>Week Total</label><input data-owner="s" data-week="1" data-cat="weektotal" readonly type="number" value="0"></div>
+        </div>
+
+        <div class="week-row" style="margin-top:8px" id="sWeek2">
+          <div><label>Groceries</label><input data-owner="s" data-week="2" data-cat="groceries" type="number" min="0" value="0"></div>
+          <div><label>Eating Out</label><input data-owner="s" data-week="2" data-cat="eating" type="number" min="0" value="0"></div>
+          <div><label>Trips</label><input data-owner="s" data-week="2" data-cat="trips" type="number" min="0" value="0"></div>
+          <div><label>Utilities</label><input data-owner="s" data-week="2" data-cat="utilities" type="number" min="0" value="0"></div>
+          <div><label>Misc</label><input data-owner="s" data-week="2" data-cat="misc" type="number" min="0" value="0"></div>
+          <div><label>Week Total</label><input data-owner="s" data-week="2" data-cat="weektotal" readonly type="number" value="0"></div>
+        </div>
+
+        <div class="week-row" style="margin-top:8px" id="sWeek3">
+          <div><label>Groceries</label><input data-owner="s" data-week="3" data-cat="groceries" type="number" min="0" value="0"></div>
+          <div><label>Eating Out</label><input data-owner="s" data-week="3" data-cat="eating" type="number" min="0" value="0"></div>
+          <div><label>Trips</label><input data-owner="s" data-week="3" data-cat="trips" type="number" min="0" value="0"></div>
+          <div><label>Utilities</label><input data-owner="s" data-week="3" data-cat="utilities" type="number" min="0" value="0"></div>
+          <div><label>Misc</label><input data-owner="s" data-week="3" data-cat="misc" type="number" min="0" value="0"></div>
+          <div><label>Week Total</label><input data-owner="s" data-week="3" data-cat="weektotal" readonly type="number" value="0"></div>
+        </div>
+
+        <div class="week-row" style="margin-top:8px" id="sWeek4">
+          <div><label>Groceries</label><input data-owner="s" data-week="4" data-cat="groceries" type="number" min="0" value="0"></div>
+          <div><label>Eating Out</label><input data-owner="s" data-week="4" data-cat="eating" type="number" min="0" value="0"></div>
+          <div><label>Trips</label><input data-owner="s" data-week="4" data-cat="trips" type="number" min="0" value="0"></div>
+          <div><label>Utilities</label><input data-owner="s" data-week="4" data-cat="utilities" type="number" min="0" value="0"></div>
+          <div><label>Misc</label><input data-owner="s" data-week="4" data-cat="misc" type="number" min="0" value="0"></div>
+          <div><label>Week Total</label><input data-owner="s" data-week="4" data-cat="weektotal" readonly type="number" value="0"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="margin-top:12px" class="grid">
+      <div class="card">
+        <div class="section-title">Monthly Summary</div>
+        <div class="small">Totals auto-calculated from weekly inputs</div>
+        <div style="margin-top:10px">
+          <div class="totals">
+            <div class="pill">Karthik Total: <span id="aTotal">0</span></div>
+            <div class="pill">Kalyani Total: <span id="bTotal">0</span></div>
+            <div class="pill">Shared Total: <span id="sTotal">0</span></div>
+          </div>
+
+          <div style="margin-top:10px">
+            <label>Shared Split Method</label>
+            <select id="splitMethod">
+              <option value="half">50-50 split</option>
+              <option value="income">Income-based split</option>
+            </select>
+          </div>
+
+          <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+            <div style="width:120px"><label>Karthik Income</label><input id="incomeA" type="number" value="100000"></div>
+            <div style="width:120px"><label>Kalyani Income</label><input id="incomeB" type="number" value="0"></div>
+            <div style="align-self:flex-end"><button id="calcSplit" class="btn">Calculate Split</button></div>
+          </div>
+
+          <div style="margin-top:8px" class="small muted">Shared Split Result: <span id="splitResult">-</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Chart</div>
+        <canvas id="chartCanvas"></canvas>
+        <div style="display:flex;gap:12px;margin-top:8px;align-items:center">
+          <div class="pastel-legend"><div class="box" style="background:linear-gradient(180deg,#ffd6e0,#ffefef)"></div><div class="small">Karthik</div></div>
+          <div class="pastel-legend"><div class="box" style="background:linear-gradient(180deg,#e6f7ff,#f3fbff)"></div><div class="small">Kalyani</div></div>
+          <div class="pastel-legend"><div class="box" style="background:linear-gradient(180deg,#fff3cc,#fffaf0)"></div><div class="small">Shared</div></div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Tip: Use the Export/Import to share data with your partner. Data is stored locally on device only.
+    </footer>
+  </div>
+
+  <script>
+    // Simple offline tracker logic, stores data in localStorage keyed by month
+    const inputs = Array.from(document.querySelectorAll('input[type="number"]')).filter(i => !i.hasAttribute('readonly'));
+    const monthName = document.getElementById('monthName');
+    const saveBtn = document.getElementById('saveBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const importBtn = document.getElementById('importBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const calcSplit = document.getElementById('calcSplit');
+    const incomeA = document.getElementById('incomeA');
+    const incomeB = document.getElementById('incomeB');
+    const splitMethod = document.getElementById('splitMethod');
+    const splitResult = document.getElementById('splitResult');
+    const aTotalEl = document.getElementById('aTotal');
+    const bTotalEl = document.getElementById('bTotal');
+    const sTotalEl = document.getElementById('sTotal');
+
+    function keyForMonth(){
+      const m = monthName.value.trim() || (new Date()).toLocaleString('default',{month:'long',year:'numeric'});
+      return 'pt.' + m;
+    }
+
+    function readAll(){
+      const data = {};
+      inputs.forEach(inp => {
+        const owner = inp.dataset.owner;
+        const week = inp.dataset.week;
+        const cat = inp.dataset.cat;
+        data[owner] = data[owner] || {};
+        data[owner][week] = data[owner][week] || {};
+        data[owner][week][cat] = Number(inp.value) || 0;
+      });
+      return data;
+    }
+
+    function writeTotals(){
+      const data = readAll();
+      let aTotal=0,bTotal=0,sTotal=0;
+      Object.keys(data.a||{}).forEach(w=>{
+        const week = data.a[w];
+        const weekSum = Object.values(week).reduce((s,v)=>s+v,0) - (week.weektotal||0);
+        // We will compute weektotal as sum of categories
+        const calc = (week.groceries||0)+(week.food||0)+(week.trips||0)+(week.shopping||0)+(week.misc||0);
+        document.querySelectorAll([data-owner="a"][data-week="${w}"][data-cat="weektotal"])[0].value = calc;
+        aTotal += calc;
+      });
+      Object.keys(data.b||{}).forEach(w=>{
+        const week = data.b[w];
+        const calc = (week.groceries||0)+(week.food||0)+(week.trips||0)+(week.shopping||0)+(week.misc||0);
+        document.querySelectorAll([data-owner="b"][data-week="${w}"][data-cat="weektotal"])[0].value = calc;
+        bTotal += calc;
+      });
+      Object.keys(data.s||{}).forEach(w=>{
+        const week = data.s[w];
+        const calc = (week.groceries||0)+(week.eating||0)+(week.trips||0)+(week.utilities||0)+(week.misc||0);
+        document.querySelectorAll([data-owner="s"][data-week="${w}"][data-cat="weektotal"])[0].value = calc;
+        sTotal += calc;
+      });
+
+      aTotalEl.textContent = aTotal;
+      bTotalEl.textContent = bTotal;
+      sTotalEl.textContent = sTotal;
+      drawChart(aTotal,bTotal,sTotal);
+    }
+
+    function drawChart(a,b,s){
+      const canvas = document.getElementById('chartCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.clientWidth * devicePixelRatio;
+      canvas.height = 220 * devicePixelRatio;
+      ctx.scale(devicePixelRatio, devicePixelRatio);
+      // clear
+      ctx.clearRect(0,0,canvas.clientWidth,220);
+      const labels = ['Karthik','Kalyani','Shared'];
+      const vals = [a,b,s];
+      const maxv = Math.max(...vals,1);
+      const barW = 60;
+      const gap = 30;
+      const startX = 40;
+      const baseY = 180;
+      const colors = ['#ffd6e0','#e6f7ff','#fff3cc'];
+      ctx.font = '12px system-ui';
+      labels.forEach((lab,i)=>{
+        const x = startX + i*(barW+gap);
+        const h = (vals[i]/maxv) * 120;
+        // bar bg
+        ctx.fillStyle = colors[i];
+        roundRect(ctx,x,baseY-h,barW,h,8,true,false);
+        // value
+        ctx.fillStyle = '#0f172a';
+        ctx.fillText('₹'+vals[i], x, baseY-h-8);
+        // label
+        ctx.fillStyle = '#334155';
+        ctx.fillText(lab, x, baseY+18);
+      });
+    }
+
+    function roundRect(ctx,x,y,w,h,r,fill,stroke){
+      if (typeof r === 'undefined') r=5;
+      ctx.beginPath();
+      ctx.moveTo(x+r,y);
+      ctx.arcTo(x+w,y,x+w,y+h,r);
+      ctx.arcTo(x+w,y+h,x,y+h,r);
+      ctx.arcTo(x,y+h,x,y,r);
+      ctx.arcTo(x,y,x+w,y,r);
+      ctx.closePath();
+      if(fill) ctx.fill();
+      if(stroke) ctx.stroke();
+    }
+
+    inputs.forEach(i=> i.addEventListener('input', writeTotals));
+
+    saveBtn.addEventListener('click', ()=>{
+      const key = keyForMonth();
+      const payload = {
+        month: monthName.value.trim() || null,
+        data: readAll(),
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem(key, JSON.stringify(payload));
+      alert('Saved locally');
+    });
+
+    exportBtn.addEventListener('click', ()=>{
+      const key = keyForMonth();
+      const payload = localStorage.getItem(key) || JSON.stringify({month:monthName.value, data: readAll(), savedAt:new Date().toISOString()});
+      const blob = new Blob([payload], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = (key.replace('pt.','')||'tracker') + '.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    importBtn.addEventListener('click', ()=>{
+      const input = document.createElement('input');
+      input.type='file'; input.accept='application/json';
+      input.onchange = e => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = ()=>{
+          try{
+            const obj = JSON.parse(reader.result);
+            if(obj && obj.data){
+              // write values into inputs
+              Object.keys(obj.data).forEach(owner=>{
+                Object.keys(obj.data[owner]).forEach(week=>{
+                  Object.keys(obj.data[owner][week]).forEach(cat=>{
+                    const el = document.querySelector([data-owner="${owner}"][data-week="${week}"][data-cat="${cat}"]);
+                    if(el) el.value = Number(obj.data[owner][week][cat])||0;
+                  });
+                });
+              });
+              monthName.value = obj.month || monthName.value;
+              writeTotals();
+              alert('Imported');
+            } else alert('Invalid file');
+          } catch(err){alert('Could not parse file')}
+        }
+        reader.readAsText(file);
+      };
+      input.click();
+    });
+
+    clearBtn.addEventListener('click', ()=>{
+      if(!confirm('Reset all numbers for this month?')) return;
+      inputs.forEach(i=> i.value=0);
+      writeTotals();
+      const key = keyForMonth();
+      localStorage.removeItem(key);
+      alert('Reset');
+    });
+
+    calcSplit.addEventListener('click', ()=>{
+      const sTotal = Number(sTotalEl.textContent)||0;
+      if(splitMethod.value === 'half'){
+        const each = Math.round(sTotal/2);
+        splitResult.textContent = Each pays ₹${each} (50-50);
+      } else {
+        const a = Number(incomeA.value)||0;
+        const b = Number(incomeB.value)||0;
+        const totalInc = a+b || 1;
+        const shareA = Math.round(sTotal * (a/totalInc));
+        const shareB = sTotal - shareA;
+        splitResult.textContent = A pays ₹${shareA} · B pays ₹${shareB} (income split);
+      }
+    });
+
+    // load local saved if exists
+    (function load(){
+      const key = keyForMonth();
+      const saved = localStorage.getItem(key);
+      if(saved){
+        try{
+          const obj = JSON.parse(saved);
+          if(obj.data){
+            Object.keys(obj.data).forEach(owner=>{
+              Object.keys(obj.data[owner]).forEach(week=>{
+                Object.keys(obj.data[owner][week]).forEach(cat=>{
+                  const el = document.querySelector([data-owner="${owner}"][data-week="${week}"][data-cat="${cat}"]);
+                  if(el) el.value = Number(obj.data[owner][week][cat])||0;
+                });
+              });
+            });
+            monthName.value = obj.month || monthName.value;
+          }
+        }catch(e){}
+      }
+      writeTotals();
+    })();
+
+  </script>
+</body>
+</html>
